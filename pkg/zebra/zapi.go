@@ -19,13 +19,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/osrg/gobgp/pkg/packet/bgp"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"math"
 	"net"
 	"strings"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -244,23 +244,112 @@ var zapi4SafiMap = map[Safi]Safi{
 	zapi4SafiEncap:   safiEncap,
 	zapi4SafiEvpn:    safiEvpn,
 }
-var safiRouteFamilyIPv4Map = map[Safi]bgp.RouteFamily{
-	safiUnspec:         bgp.RF_OPAQUE,
-	SafiUnicast:        bgp.RF_IPv4_UC,
-	safiMulticast:      bgp.RF_IPv4_MC,
-	safiMplsVpn:        bgp.RF_IPv4_VPN,
-	safiEncap:          bgp.RF_IPv4_ENCAP,
-	safiLabeledUnicast: bgp.RF_IPv4_MPLS,
-	safiFlowspec:       bgp.RF_FS_IPv4_UC,
+
+const (
+	AFI_IP     = 1
+	AFI_IP6    = 2
+	AFI_L2VPN  = 25
+	AFI_LS     = 16388
+	AFI_OPAQUE = 16397
+)
+
+const (
+	SAFI_UNICAST                  = 1
+	SAFI_MULTICAST                = 2
+	SAFI_MPLS_LABEL               = 4
+	SAFI_ENCAPSULATION            = 7
+	SAFI_VPLS                     = 65
+	SAFI_EVPN                     = 70
+	SAFI_LS                       = 71
+	SAFI_SRPOLICY                 = 73
+	SAFI_MPLS_VPN                 = 128
+	SAFI_MPLS_VPN_MULTICAST       = 129
+	SAFI_ROUTE_TARGET_CONSTRAINTS = 132
+	SAFI_FLOW_SPEC_UNICAST        = 133
+	SAFI_FLOW_SPEC_VPN            = 134
+	SAFI_KEY_VALUE                = 241
+)
+
+type RouteFamily int
+
+func (f RouteFamily) String() string {
+	if n, y := AddressFamilyNameMap[f]; y {
+		return n
+	}
+	return fmt.Sprintf("UnknownFamily(%d)", f)
 }
-var safiRouteFamilyIPv6Map = map[Safi]bgp.RouteFamily{
-	safiUnspec:         bgp.RF_OPAQUE,
-	SafiUnicast:        bgp.RF_IPv6_UC,
-	safiMulticast:      bgp.RF_IPv6_MC,
-	safiMplsVpn:        bgp.RF_IPv6_VPN,
-	safiEncap:          bgp.RF_IPv6_ENCAP,
-	safiLabeledUnicast: bgp.RF_IPv6_MPLS,
-	safiFlowspec:       bgp.RF_FS_IPv6_UC,
+
+var AddressFamilyNameMap = map[RouteFamily]string{
+	RF_IPv4_UC:        "ipv4-unicast",
+	RF_IPv6_UC:        "ipv6-unicast",
+	RF_IPv4_MC:        "ipv4-multicast",
+	RF_IPv6_MC:        "ipv6-multicast",
+	RF_IPv4_MPLS:      "ipv4-labelled-unicast",
+	RF_IPv6_MPLS:      "ipv6-labelled-unicast",
+	RF_IPv4_VPN:       "l3vpn-ipv4-unicast",
+	RF_IPv6_VPN:       "l3vpn-ipv6-unicast",
+	RF_IPv4_VPN_MC:    "l3vpn-ipv4-multicast",
+	RF_IPv6_VPN_MC:    "l3vpn-ipv6-multicast",
+	RF_VPLS:           "l2vpn-vpls",
+	RF_EVPN:           "l2vpn-evpn",
+	RF_RTC_UC:         "rtc",
+	RF_IPv4_ENCAP:     "ipv4-encap",
+	RF_IPv6_ENCAP:     "ipv6-encap",
+	RF_FS_IPv4_UC:     "ipv4-flowspec",
+	RF_FS_IPv4_VPN:    "l3vpn-ipv4-flowspec",
+	RF_FS_IPv6_UC:     "ipv6-flowspec",
+	RF_FS_IPv6_VPN:    "l3vpn-ipv6-flowspec",
+	RF_FS_L2_VPN:      "l2vpn-flowspec",
+	RF_OPAQUE:         "opaque",
+	RF_LS:             "ls",
+	RF_SR_POLICY_IPv4: "ipv4-srpolicy",
+	RF_SR_POLICY_IPv6: "ipv6-srpolicy",
+}
+
+const (
+	RF_IPv4_UC        RouteFamily = AFI_IP<<16 | SAFI_UNICAST
+	RF_IPv6_UC        RouteFamily = AFI_IP6<<16 | SAFI_UNICAST
+	RF_IPv4_MC        RouteFamily = AFI_IP<<16 | SAFI_MULTICAST
+	RF_IPv6_MC        RouteFamily = AFI_IP6<<16 | SAFI_MULTICAST
+	RF_IPv4_VPN       RouteFamily = AFI_IP<<16 | SAFI_MPLS_VPN
+	RF_IPv6_VPN       RouteFamily = AFI_IP6<<16 | SAFI_MPLS_VPN
+	RF_IPv4_VPN_MC    RouteFamily = AFI_IP<<16 | SAFI_MPLS_VPN_MULTICAST
+	RF_IPv6_VPN_MC    RouteFamily = AFI_IP6<<16 | SAFI_MPLS_VPN_MULTICAST
+	RF_IPv4_MPLS      RouteFamily = AFI_IP<<16 | SAFI_MPLS_LABEL
+	RF_IPv6_MPLS      RouteFamily = AFI_IP6<<16 | SAFI_MPLS_LABEL
+	RF_VPLS           RouteFamily = AFI_L2VPN<<16 | SAFI_VPLS
+	RF_EVPN           RouteFamily = AFI_L2VPN<<16 | SAFI_EVPN
+	RF_RTC_UC         RouteFamily = AFI_IP<<16 | SAFI_ROUTE_TARGET_CONSTRAINTS
+	RF_IPv4_ENCAP     RouteFamily = AFI_IP<<16 | SAFI_ENCAPSULATION
+	RF_IPv6_ENCAP     RouteFamily = AFI_IP6<<16 | SAFI_ENCAPSULATION
+	RF_FS_IPv4_UC     RouteFamily = AFI_IP<<16 | SAFI_FLOW_SPEC_UNICAST
+	RF_FS_IPv4_VPN    RouteFamily = AFI_IP<<16 | SAFI_FLOW_SPEC_VPN
+	RF_FS_IPv6_UC     RouteFamily = AFI_IP6<<16 | SAFI_FLOW_SPEC_UNICAST
+	RF_FS_IPv6_VPN    RouteFamily = AFI_IP6<<16 | SAFI_FLOW_SPEC_VPN
+	RF_FS_L2_VPN      RouteFamily = AFI_L2VPN<<16 | SAFI_FLOW_SPEC_VPN
+	RF_OPAQUE         RouteFamily = AFI_OPAQUE<<16 | SAFI_KEY_VALUE
+	RF_LS             RouteFamily = AFI_LS<<16 | SAFI_LS
+	RF_SR_POLICY_IPv4 RouteFamily = AFI_IP<<16 | SAFI_SRPOLICY
+	RF_SR_POLICY_IPv6 RouteFamily = AFI_IP6<<16 | SAFI_SRPOLICY
+)
+
+var safiRouteFamilyIPv4Map = map[Safi]RouteFamily{
+	safiUnspec:         RF_OPAQUE,
+	SafiUnicast:        RF_IPv4_UC,
+	safiMulticast:      RF_IPv4_MC,
+	safiMplsVpn:        RF_IPv4_VPN,
+	safiEncap:          RF_IPv4_ENCAP,
+	safiLabeledUnicast: RF_IPv4_MPLS,
+	safiFlowspec:       RF_FS_IPv4_UC,
+}
+var safiRouteFamilyIPv6Map = map[Safi]RouteFamily{
+	safiUnspec:         RF_OPAQUE,
+	SafiUnicast:        RF_IPv6_UC,
+	safiMulticast:      RF_IPv6_MC,
+	safiMplsVpn:        RF_IPv6_VPN,
+	safiEncap:          RF_IPv6_ENCAP,
+	safiLabeledUnicast: RF_IPv6_MPLS,
+	safiFlowspec:       RF_FS_IPv6_UC,
 }
 
 // APIType is referred in zclient_test.
@@ -1491,7 +1580,7 @@ func (c *Client) SendRedistribute(t RouteType, vrfID uint32) error {
 // SendIPRoute sends ROUTE message to zebra daemon.
 func (c *Client) SendIPRoute(vrfID uint32, body *IPRouteBody, isWithdraw bool) error {
 	routeFamily := body.RouteFamily(c.Version, c.SoftwareName)
-	if vrfID == DefaultVrf && (routeFamily == bgp.RF_IPv4_VPN || routeFamily == bgp.RF_IPv6_VPN) {
+	if vrfID == DefaultVrf && (routeFamily == RF_IPv4_VPN || routeFamily == RF_IPv6_VPN) {
 		return fmt.Errorf("RF_IPv4_VPN or RF_IPv6_VPN are not suitable for Default VRF (default forwarding table)")
 	}
 	command := RouteAdd
@@ -2323,20 +2412,20 @@ func (b *IPRouteBody) safi(version uint8, software string) Safi {
 }
 
 // RouteFamily is referred in zclient
-func (b *IPRouteBody) RouteFamily(version uint8, softwareName string) bgp.RouteFamily {
+func (b *IPRouteBody) RouteFamily(version uint8, softwareName string) RouteFamily {
 	if b == nil {
-		return bgp.RF_OPAQUE // fail
+		return RF_OPAQUE // fail
 	}
 	safi := b.safi(version, softwareName)
 	if safi == safiEvpn {
-		return bgp.RF_EVPN // sucess
+		return RF_EVPN // sucess
 	}
 	family := b.Prefix.Family
 	if family == syscall.AF_UNSPEC {
 		family = familyFromPrefix(b.Prefix.Prefix)
 	}
 	if family == syscall.AF_UNSPEC { // familyFromPrefix returs AF_UNSPEC
-		return bgp.RF_OPAQUE // fail
+		return RF_OPAQUE // fail
 	}
 	safiRouteFamilyMap := safiRouteFamilyIPv4Map // syscall.AF_INET
 	if family == syscall.AF_INET6 {
@@ -2344,7 +2433,7 @@ func (b *IPRouteBody) RouteFamily(version uint8, softwareName string) bgp.RouteF
 	}
 	rf, ok := safiRouteFamilyMap[safi]
 	if !ok {
-		return bgp.RF_OPAQUE // fail
+		return RF_OPAQUE // fail
 	}
 	log.WithFields(log.Fields{
 		"Topic": "Zebra",
