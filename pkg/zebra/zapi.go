@@ -391,8 +391,8 @@ const (
 	_bfdDestDeregister // 30
 	_bfdDestUpdate
 	_bfdDestReplay
-	redistributeRouteAdd
-	redistributeRouteDel
+	RedistributeRouteAdd
+	RedistributeRouteDel
 	_vrfUnregister
 	_vrfAdd
 	_vrfDelete
@@ -564,8 +564,8 @@ var apiTypeZapi6Frr7Map = map[APIType]APIType{ // frr7.0, 7.1
 	nexthopRegister:          zapi6Frr7NexthopRegister,
 	nexthopUnregister:        zapi6Frr7NexthopUnregister,
 	nexthopUpdate:            zapi6Frr7NexthopUpdate,
-	redistributeRouteAdd:     zapi6Frr7RedistributeRouteAdd,
-	redistributeRouteDel:     zapi6Frr7RedistributeRouteDel,
+	RedistributeRouteAdd:     zapi6Frr7RedistributeRouteAdd,
+	RedistributeRouteDel:     zapi6Frr7RedistributeRouteDel,
 	vrfLabel:                 zapi6Frr7VrfLabel,
 	ipv4NexthopLookupMRIB:    zapi6Frr7Ipv4NexthopLookupMRIB,
 	labelManagerConnect:      zapi6Frr7LabelManagerConnect,
@@ -584,8 +584,8 @@ var apiTypeZapi6Frr6Map = map[APIType]APIType{
 	nexthopRegister:          zapi6Frr7NexthopRegister,              // same as frr7.0&7.1
 	nexthopUnregister:        zapi6Frr7NexthopUnregister,            // same as frr7.0&7.1
 	nexthopUpdate:            zapi6Frr7NexthopUpdate,                // same as frr7.0&7.1
-	redistributeRouteAdd:     redistributeRouteAdd,                  // same as frr7.2&7.3
-	redistributeRouteDel:     redistributeRouteDel,                  // same as frr7.2&7.3
+	RedistributeRouteAdd:     RedistributeRouteAdd,                  // same as frr7.2&7.3
+	RedistributeRouteDel:     RedistributeRouteDel,                  // same as frr7.2&7.3
 	vrfLabel:                 vrfLabel,                              // same as frr7.2&7.3
 	ipv4NexthopLookupMRIB:    ipv4NexthopLookupMRIB,                 // same as frr7.2&7.3
 	labelManagerConnect:      zapi6Frr7dot2LabelManagerConnect,      // same as frr7.2
@@ -605,8 +605,8 @@ var apiTypeZapi5ClMap = map[APIType]APIType{
 	nexthopRegister:      zapi6Frr7NexthopRegister,      // same as frr7.0&7.1
 	nexthopUnregister:    zapi6Frr7NexthopUnregister,    // same as frr7.0&7.1
 	nexthopUpdate:        zapi6Frr7NexthopUpdate,        // same as frr7.0&7.1
-	redistributeRouteAdd: zapi6Frr7RedistributeRouteAdd, // same as frr7.0&7.1
-	redistributeRouteDel: zapi6Frr7RedistributeRouteDel, // same as frr7.0&7.1
+	RedistributeRouteAdd: zapi6Frr7RedistributeRouteAdd, // same as frr7.0&7.1
+	RedistributeRouteDel: zapi6Frr7RedistributeRouteDel, // same as frr7.0&7.1
 	vrfLabel:             zapi6Frr7VrfLabel,             // same as frr7.0&7.1
 	labelManagerConnect:  zapi5ClLabelManagerConnect,
 	getLabelChunk:        zapi5ClGetLabelChunk,
@@ -641,8 +641,8 @@ var apiTypeZapi5Frr5Map = map[APIType]APIType{
 	nexthopRegister:          zapi5Frr5NexthopRegister,
 	nexthopUnregister:        zapi5Frr5NexthopUnregister,
 	nexthopUpdate:            zapi5Frr5NexthopUpdate,
-	redistributeRouteAdd:     zapi5Frr5RedistributeRouteAdd,
-	redistributeRouteDel:     zapi5Frr5RedistributeRouteDel,
+	RedistributeRouteAdd:     zapi5Frr5RedistributeRouteAdd,
+	RedistributeRouteDel:     zapi5Frr5RedistributeRouteDel,
 	vrfLabel:                 zapi5Frr5VrfLabel,
 	ipv4NexthopLookupMRIB:    zapi5Frr5Ipv4NexthopLookupMRIB,
 	labelManagerConnect:      zapi5Frr5LabelManagerConnect,
@@ -673,8 +673,8 @@ var apiTypeZapi5Frr4Map = map[APIType]APIType{
 	nexthopRegister:       zapi5Frr4NexthopRegister,
 	nexthopUnregister:     zapi5Frr4NexthopUnregister,
 	nexthopUpdate:         zapi5Frr4NexthopUpdate,
-	redistributeRouteAdd:  zapi5Frr4RedistributeRouteAdd,
-	redistributeRouteDel:  zapi5Frr4RedistributeRouteDel,
+	RedistributeRouteAdd:  zapi5Frr4RedistributeRouteAdd,
+	RedistributeRouteDel:  zapi5Frr4RedistributeRouteDel,
 	ipv4NexthopLookupMRIB: zapi5Frr4Ipv4NexthopLookupMRIB,
 	labelManagerConnect:   zapi5Frr4LabelManagerConnect,
 	getLabelChunk:         zapi5Frr4GetLabelChunk,
@@ -712,8 +712,8 @@ var apiTypeZapi4Map = map[APIType]APIType{
 	nexthopRegister:         zapi4NexthopRegister,
 	nexthopUnregister:       zapi4NexthopUnregister,
 	nexthopUpdate:           zapi4NexthopUpdate,
-	redistributeRouteAdd:    zapi4RedistributeIPv4Add,       // deleted in zapi5
-	redistributeRouteDel:    zapi4RedistributeIPv4Del,       // deleted in zapi5
+	RedistributeRouteAdd:    zapi4RedistributeIPv4Add,       // deleted in zapi5
+	RedistributeRouteDel:    zapi4RedistributeIPv4Del,       // deleted in zapi5
 	ipv4NexthopLookupMRIB:   zapi6Frr7Ipv4NexthopLookupMRIB, // same as frr7.0&7.1
 	labelManagerConnect:     zapi4LabelManagerConnect,
 	getLabelChunk:           zapi4GetLabelChunk,
@@ -2446,7 +2446,7 @@ func (b *IPRouteBody) RouteFamily(version uint8, softwareName string) RouteFamil
 func (b *IPRouteBody) IsWithdraw(version uint8, softwareName string) bool {
 	api := b.API.toCommon(version, softwareName)
 	switch api {
-	case RouteDelete, redistributeRouteDel, BackwardIPv6RouteDelete:
+	case RouteDelete, RedistributeRouteDel, BackwardIPv6RouteDelete:
 		return true
 	}
 	if version == 4 && b.API == zapi4RedistributeIPv6Del {
@@ -3386,7 +3386,7 @@ func parseMessage(hdr *Header, data []byte, software string) (m *Message, err er
 		m.Body = &routerIDUpdateBody{}
 	case nexthopUpdate:
 		m.Body = &NexthopUpdateBody{}
-	case redistributeRouteAdd, redistributeRouteDel: // for frr
+	case RedistributeRouteAdd, RedistributeRouteDel: // for frr
 		m.Body = &IPRouteBody{API: m.Header.Command}
 	case labelManagerConnect: // Note: Synchronous message
 		m.Body = &labelManagerConnectBody{}
