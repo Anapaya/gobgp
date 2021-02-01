@@ -858,7 +858,7 @@ const (
 	RouteStatic
 	routeRIP
 	routeRIPNG
-	routeOSPF
+	RouteOSPF
 	routeOSPF6
 	routeISIS
 	RouteBGP
@@ -981,7 +981,7 @@ var routeTypeValueMap = map[string]RouteType{
 	"static":                   RouteStatic,
 	"rip":                      routeRIP,
 	"ripng":                    routeRIPNG,
-	"ospf":                     routeOSPF,
+	"ospf":                     RouteOSPF,
 	"ospf3":                    routeOSPF6,
 	"isis":                     routeISIS,
 	"bgp":                      RouteBGP,

@@ -14,7 +14,7 @@ func _() {
 	_ = x[RouteStatic-3]
 	_ = x[routeRIP-4]
 	_ = x[routeRIPNG-5]
-	_ = x[routeOSPF-6]
+	_ = x[RouteOSPF-6]
 	_ = x[routeOSPF6-7]
 	_ = x[routeISIS-8]
 	_ = x[RouteBGP-9]
