@@ -1469,6 +1469,7 @@ func NewClient(network, address string, typ RouteType, version uint8, software s
 		defer closeChannel(incoming)
 		for {
 			if m, err := receiveSingleMsg(); err != nil {
+				close(incoming)
 				return
 			} else if m != nil {
 				incoming <- m
