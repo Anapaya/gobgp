@@ -252,7 +252,7 @@ var safiRouteFamilyIPv6Map = map[Safi]bgp.RouteFamily{
 //go:generate stringer -type=APIType
 type APIType uint16
 
-// For FRRouting version 8.1 (ZAPI version 6)
+// For FRRouting version 10.1 (ZAPI version 6)
 const (
 	interfaceAdd           APIType = iota // 0 // same ID in frr3, 4, 5, 6, 7.0, 7.1. 7.2. 7.3, 7.4, 7.5, 8.0, 8.1, 8.2
 	interfaceDelete                       // same ID in frr3, 4, 5, 6, 7.0, 7.1. 7.2. 7.3, 7.4, 7.5, 8.0, 8.1, 8.2
@@ -261,6 +261,7 @@ const (
 	interfaceUp                           // same ID in frr3, 4, 5, 6, 7.0, 7.1. 7.2. 7.3, 7.4, 7.5, 8.0, 8.1, 8.2
 	interfaceDown                         // same ID in frr3, 4, 5, 6, 7.0, 7.1. 7.2. 7.3, 7.4, 7.5, 8.0, 8.1, 8.2
 	_interfaceSetMaster
+	_interfaceSetARP       // Add in frr 10.0
 	_interfaceSetProtoDown // Add in frr 7.2
 	RouteAdd               // RouteAdd is referred in zclient_test
 	RouteDelete            // RouteDelete is referred in zclient_test
@@ -383,11 +384,11 @@ const (
 	_neighDiscover                  // added in frr7.5
 	_RouteNotifyRequest             // added in frr8
 	_ClientCloseNotify              // added in frr8
-	_NhrpNeighAdded                 // added in frr8
-	_NhrpNeighRemoved               // 130 // added in frr8
-	_NhrpNeighGet                   // added in frr8
-	_NhrpNeighRegister              // added in frr8
-	_NhrpNeighUnregister            // 133// 130 in frr8.2 // added in frr8
+	_NeighAdded                     // added in frr8
+	_NeighRemoved                   // 130 // added in frr8
+	_NeighGet                       // added in frr8
+	_NeighRegister                  // added in frr8
+	_NeighUnregister                // 133// 130 in frr8.2 // added in frr8
 	_NeighIPAdd                     // added in frr8
 	_NeighIPDel                     // added in frr8
 	_ConfigureArp                   // added in frr8
@@ -402,14 +403,15 @@ const (
 
 // Difference default version (frr8.1) and older version
 const (
-	zapi6Frr8dot2MinDifferentAPIType APIType = 26 //frr8.2(zapi6)
-	zapi6Frr7dot3MinDifferentAPIType APIType = 49 //frr7.3(zapi6)
-	zapi6Frr7dot2MinDifferentAPIType APIType = 48 //frr7.2(zapi6)
-	zapi6Frr6MinDifferentAPIType     APIType = 7  //frr6&7.0&7.1(zapi6)
-	zapi5ClMinDifferentAPIType       APIType = 19 //cumuluslinux3.7.7, zebra4.0+cl3u13(zapi5)
-	zapi5MinDifferentAPIType         APIType = 7  //frr4&5(zapi5), frr6&7.0&7.1(zapi6)
-	zapi4MinDifferentAPIType         APIType = 6
-	zapi3MinDifferentAPIType         APIType = 0
+	zapi6Frr10dot0MinDifferentAPIType APIType = 142 // frr10.0(zapi6)
+	zapi6Frr8dot2MinDifferentAPIType  APIType = 7   //frr8.2(zapi6)
+	zapi6Frr7dot3MinDifferentAPIType  APIType = 7   //frr7.3(zapi6)
+	zapi6Frr7dot2MinDifferentAPIType  APIType = 7   //frr7.2(zapi6)
+	zapi6Frr6MinDifferentAPIType      APIType = 7   //frr6&7.0&7.1(zapi6)
+	zapi5ClMinDifferentAPIType        APIType = 7   //cumuluslinux3.7.7, zebra4.0+cl3u13(zapi5)
+	zapi5MinDifferentAPIType          APIType = 7   //frr4&5(zapi5), frr6&7.0&7.1(zapi6)
+	zapi4MinDifferentAPIType          APIType = 6
+	zapi3MinDifferentAPIType          APIType = 0
 )
 
 func minDifferentAPIType(version uint8, software Software) APIType {
@@ -426,8 +428,10 @@ func minDifferentAPIType(version uint8, software Software) APIType {
 		return zapi6Frr7dot2MinDifferentAPIType
 	} else if version == 6 && software.name == "frr" && software.version < 7.5 {
 		return zapi6Frr7dot3MinDifferentAPIType
+	} else if version == 6 && software.name == "frr" && software.version < 8.2 {
+		return zapi6Frr8dot2MinDifferentAPIType
 	}
-	return zapi6Frr8dot2MinDifferentAPIType
+	return zapi6Frr10dot0MinDifferentAPIType
 }
 
 const (
@@ -714,7 +718,7 @@ var apiTypeZapi3Map = map[APIType]APIType{
 
 func (t APIType) doesNeedConversion(version uint8, software Software) bool {
 	if (version == 6 && software.name == "frr" &&
-		software.version >= 7.5 && software.version < 8.2) ||
+		software.version >= 7.5 && software.version < 10.2) ||
 		t < minDifferentAPIType(version, software) {
 		return false
 	}
